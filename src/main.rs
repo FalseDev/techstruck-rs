@@ -8,10 +8,7 @@ use poise::serenity_prelude as serenity;
 async fn main() {
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
-            commands: vec![vec![], groups::commands()]
-                .into_iter()
-                .flatten()
-                .collect(),
+            commands: groups::commands(),
             prefix_options: poise::PrefixFrameworkOptions {
                 prefix: Some(get_env("BOT_PREFIX", None)),
                 case_insensitive_commands: true,
