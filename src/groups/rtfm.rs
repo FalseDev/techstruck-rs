@@ -1,4 +1,4 @@
-use crate::common::{Context, Error};
+use crate::common::{Context, Error, ErrorContext};
 use poise::command;
 use std::{
     collections::HashMap,
@@ -22,17 +22,20 @@ impl SphinxInventory {
         Ok(line.trim_end().to_owned())
     }
 
-    fn read_compressed_chunks(self) -> String {
+    fn read_compressed_chunks(self) -> Result<String, Error> {
         let mut decompressor = flate2::read::ZlibDecoder::new(self.cursor);
         let mut s = String::new();
-        decompressor.read_to_string(&mut s).unwrap();
-        s
+        decompressor
+            .read_to_string(&mut s)
+            .context("Failed to decompress zlib encoded Sphinx inventory")?;
+        Ok(s)
     }
-    fn read_compressed_lines(self) -> Vec<String> {
-        self.read_compressed_chunks()
+    fn read_compressed_lines(self) -> Result<Vec<String>, Error> {
+        Ok(self
+            .read_compressed_chunks()?
             .lines()
             .map(ToOwned::to_owned)
-            .collect()
+            .collect())
     }
 
     /// Read file headers and return ``project name``
@@ -62,22 +65,32 @@ impl SphinxInventory {
         let _proj_name = self.process_headers()?;
         let entry_regex = regex::Regex::new(r"(?x)(.+?)\s+(\S*:\S*)\s+(-?\d+)\s+(\S+)\s+(.*)")?;
         let mut result: HashMap<String, String> = HashMap::new();
-        for item in self.read_compressed_lines() {
-            let capture = entry_regex.captures(&item).unwrap();
-            let capture: Vec<String> = capture
+        for item in self.read_compressed_lines()? {
+            let capture: Vec<&str> = entry_regex
+                .captures(&item)
+                .with_context(|| {
+                    format!("Line does not match Sphinx inventory format: {:?}", item)
+                })?
                 .iter()
-                .map(Option::unwrap)
-                .map(|r| r.as_str())
-                .map(|s| s.to_owned())
-                .collect();
+                .skip(1)
+                .map(|r| r.map(|r| r.as_str()))
+                .collect::<Option<Vec<&str>>>()
+                .with_context(|| {
+                    format!(
+                        "Some capture groups didn't participate in matching {:?}",
+                        item
+                    )
+                })?;
             let (name, directive, _prio, mut location, dispname) = (
-                &capture[1],
-                &capture[2],
-                &capture[3],
-                capture[4].to_owned(),
-                &capture[5],
+                capture[0],
+                capture[1],
+                capture[2],
+                capture[3].to_string(),
+                capture[4],
             );
-            let (domain, mut subdirective) = directive.split_once(':').unwrap();
+            let (domain, mut subdirective) = directive
+                .split_once(':')
+                .with_context(|| format!("Invalid sphinx directive: {:?}", directive))?;
             if directive == "py:module" && result.get(name).is_some() {
                 // From the Sphinx Repository:
                 // due to a bug in 1.1 and below,

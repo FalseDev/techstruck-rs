@@ -1,4 +1,4 @@
-use anyhow::Context as ErrorContext;
+pub(crate) use anyhow::Context as ErrorContext;
 use std::sync::Arc;
 
 use crate::groups::rtfm::RtfmData;
