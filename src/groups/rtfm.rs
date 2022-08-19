@@ -37,15 +37,19 @@ impl SphinxInventory {
 
     /// Read file headers and return ``project name``
     fn process_headers(&mut self) -> Result<String, Error> {
-        let header_line = self.read_line()?;
-        if header_line != "# Sphinx inventory version 2" {
-            panic!("Invalid Sphinx Inventory header: {:?}", header_line);
+        let version_header = self.read_line()?;
+        if version_header != "# Sphinx inventory version 2" {
+            anyhow::bail!("Invalid Sphinx version header: {}", version_header);
         };
+
         let proj_name = self.read_line()?[11..].to_owned();
         let _version = &self.read_line()?[11..];
-        if !self.read_line()?.contains("zlib") {
-            panic!("Not zlib");
+
+        let encoding_header = self.read_line()?;
+        if !encoding_header.contains("zlib") {
+            anyhow::bail!("Invalid Sphinx encoding header: {}", encoding_header);
         }
+
         Ok(proj_name)
     }
 

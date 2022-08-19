@@ -1,8 +1,9 @@
+use anyhow::Context as ErrorContext;
 use std::sync::Arc;
 
 use crate::groups::rtfm::RtfmData;
 
-pub(crate) type Error = Box<dyn std::error::Error + Send + Sync>;
+pub(crate) type Error = anyhow::Error;
 pub(crate) type Context<'a> = poise::Context<'a, Data, Error>;
 
 // Data which is stored and accessible in all command invocations
@@ -31,5 +32,11 @@ impl Data {
 }
 
 pub(crate) fn get_env(name: &str, default: Option<String>) -> String {
-    std::env::var(name).unwrap_or_else(|_err| default.unwrap_or_else(|| panic!("missing {}", name)))
+    std::env::var(name).unwrap_or_else(|err| {
+        default.unwrap_or_else(|| {
+            Err(err)
+                .with_context(|| format!("Missing Env Variable: {:?}", name))
+                .unwrap()
+        })
+    })
 }
