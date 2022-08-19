@@ -1,0 +1,55 @@
+{
+  "targets": {
+    "python": "https://docs.python.org/3/",
+    "discord.py": "https://discordpy.readthedocs.io/en/latest",
+    "numpy": "https://numpy.readthedocs.io/en/latest",
+    "pandas": "https://pandas.pydata.org/docs",
+    "pillow": "https://pillow.readthedocs.io/en/stable",
+    "imageio": "https://imageio.readthedocs.io/en/stable",
+    "requests": "https://requests.readthedocs.io/en/master",
+    "aiohttp": "https://docs.aiohttp.org/en/stable",
+    "django": "https://django.readthedocs.io/en/stable",
+    "flask": "https://flask.palletsprojects.com/en/1.1.x",
+    "praw": "https://praw.readthedocs.io/en/latest",
+    "apraw": "https://apraw.readthedocs.io/en/latest",
+    "asyncpg": "https://magicstack.github.io/asyncpg/current",
+    "aiosqlite": "https://aiosqlite.omnilib.dev/en/latest",
+    "sqlalchemy": "https://docs.sqlalchemy.org/en/14",
+    "tensorflow": "https://www.tensorflow.org/api_docs/python",
+    "matplotlib": "https://matplotlib.org/stable",
+    "seaborn": "https://seaborn.pydata.org",
+    "pygame": "https://www.pygame.org/docs",
+    "simplejson": "https://simplejson.readthedocs.io/en/latest",
+    "wikipedia": "https://wikipedia.readthedocs.io/en/latest"
+  },
+  "aliases": {
+    "python": ["py", "py3", "python3", "python"],
+    "discord.py": ["dpy", "discord.py", "discordpy"],
+    "numpy": ["np", "numpy", "num"],
+    "pandas": ["pd", "pandas", "panda"],
+    "pillow": ["pillow", "pil"],
+    "imageio": ["imageio", "imgio", "img"],
+    "requests": ["requests", "req"],
+    "aiohttp": ["aiohttp", "http"],
+    "django": ["django", "dj"],
+    "flask": ["flask", "fl"],
+    "praw": ["reddit", "praw", "pr"],
+    "apraw": ["asyncpraw", "apraw", "apr"],
+    "asyncpg": ["asyncpg", "pg"],
+    "aiosqlite": ["aiosqlite", "sqlite", "sqlite3", "sqli"],
+    "sqlalchemy": ["sqlalchemy", "sql", "alchemy", "alchem"],
+    "tensorflow": ["tensorflow", "tf"],
+    "matplotlib": ["matplotlib", "mpl", "plt"],
+    "seaborn": ["seaborn", "sea"],
+    "pygame": ["pygame", "pyg", "game"],
+    "simplejson": ["simplejson", "sjson", "json"],
+    "wikipedia": ["wiki", "wikipedia"]
+  },
+  "ignore_namespaces": {
+    "discord.py": ["discord.ext.commands.", "discord."],
+    "tensorflow": ["tf."]
+  },
+  "url_overrides": {
+    "tensorflow": "https://github.com/mr-ubik/tensorflow-intersphinx/raw/master/tf2_py_objects.inv"
+  }
+}
