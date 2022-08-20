@@ -1,3 +1,4 @@
+
 [package]
 name = "techstruck-rs"
 version = "0.1.0"
@@ -19,4 +20,5 @@ tokio = { version = "1.20.1", features = ["rt-multi-thread"] }
 reqwest = { version = "0.11.11" }
 serde = { version = "1.0.143", features = ["derive"] }
 serde_json = { version = "1.0.83" }
+piston_rs = "^0.4"
 
