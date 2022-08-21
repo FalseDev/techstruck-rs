@@ -3,7 +3,7 @@ use poise::command;
 use lazy_static::lazy_static;
 use reqwest::Client;
 use serde::{Serialize, Deserialize};
-use std::{sync::Arc};
+use std::sync::Arc;
 use regex::Regex;
 enum ExecutionStatus{
     Running,
@@ -83,7 +83,7 @@ struct Executor{
     client:Arc<Client>,
     data:ExecData,
     out:Option<RawExecResponse>,
-    result:ExecutionStatus,
+    result:ExecutionStatus,//use later
     url:String,
 }
 
