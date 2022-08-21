@@ -1236,6 +1236,7 @@ dependencies = [
  "anyhow",
  "bytes",
  "flate2",
+ "lazy_static",
  "ngrammatic",
  "poise",
  "regex",

@@ -1,13 +1,20 @@
 use crate::{Context, Error};
 use poise::command;
+use lazy_static::lazy_static;
 use reqwest::Client;
 use serde::{Serialize, Deserialize};
 use std::{sync::Arc};
-
+use regex::Regex;
 enum ExecutionStatus{
     Running,
     // Success,
     // Failure, //will use these later when embed building
+}
+
+lazy_static!{
+    static ref RE_CODEBLOCK:Regex = Regex::new(
+        r"(\w*)\s*(?:```)(\w*)?([\s\S]*)(?:```$)"
+    ).unwrap();
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -112,27 +119,131 @@ impl Executor{
     }
 }
 
+#[derive(Debug)]
+struct ParsedArgs{
+    version:String,
+    language:Option<String>,
+    files:Vec<File>,
+    stdin:String,
+    args:Vec<String>,
+}
+impl ParsedArgs{
+    fn set_version(&mut self, version:String){
+        self.version = version;
+    }
+    fn set_language(&mut self, language:String){
+        self.language = Some(language);
+    }
+    fn add_file(&mut self, files:File){
+        self.files.push(files);
+    }
+    fn set_stdin(&mut self, stdin:String){
+        self.stdin = stdin;
+    }
+    fn add_arg(&mut self, args:String){
+        self.args.push(args);
+    }
+}
+
+fn parse_args(arg:String)->ParsedArgs{
+    let mut parsed = ParsedArgs{
+        version:String::from("*"),
+        language:None,
+        files:vec![],
+        stdin:String::from(""),
+        args:vec![],
+    };
+    let flag_re = regex::Regex::new(r"--|=").unwrap();
+    // [version,9.2 ,lang,"rust rust" ,brr]
+    let mut raw_args = flag_re.split(&arg).peekable();
+    loop{
+        match raw_args.next(){
+            Some(part) => {
+                match part{
+                    "version"=>{
+                        raw_args.next().map(|next|{
+                            parsed.set_version(next.trim().to_string());
+                        });
+                    }
+                    "language"=>{
+                        raw_args.next().map(|next|{
+                            parsed.set_language(next.trim().to_string());
+                        });
+                    }
+                    "stdin"=>{
+                        raw_args.next().map(|next|{
+                            parsed.set_stdin(next.trim().to_string());
+                        });
+                    }
+                    "args"=>{
+                        raw_args.next().map(|next|{
+                            let mut args = next.split(",");
+                            loop{
+                                match args.next(){
+                                    Some(arg)=>{
+                                        parsed.add_arg(arg.trim().to_string());
+                                    }
+                                    None=>{
+                                        break;
+                                    }
+                                }
+                            }
+                        });
+                    }
+                    "debug"=>{
+                        println!("{:?}", parsed);
+                    }
+                    _ => {
+                        if part.starts_with("file-"){
+                            let filename = part.split("-").nth(1).unwrap().split(" ").nth(0).unwrap().trim();
+                            let code = RE_CODEBLOCK.captures(&part.trim()).and_then(|block|{
+                                block.get(3).map(|code| code.as_str())
+                            }).unwrap();
+                            parsed.add_file(File{
+                                name: filename.to_string(),
+                                content: String::from(code),
+                                encoding: String::from("utf8"),
+                            });
+                        }
+                    }
+                }
+            },
+            None => {
+                break;
+            }
+        }
+    }
+    parsed
+}
+
 
 #[command(prefix_command)]
 pub(crate) async fn run(
     ctx: Context<'_>,
     #[description = "run code"] block: poise::CodeBlock,
-    #[lazy] stdin: Option<String>,
+    #[rest] rawargs: Option<String>,
 ) -> Result<(), Error> {
     match block.language {
-        Some(language) => {
+        Some(mut language) => {
+            // sort arguments
+            let args = parse_args(rawargs.unwrap_or(String::from("")));
+            if !args.language.is_none(){
+                language = args.language.unwrap();
+            }
+            let mut files = vec![File{
+                content: block.code,
+                ..Default::default()
+            }];
+            files.extend(args.files);
+            // build executor
             let mut executor = Executor{
                 client: ctx.data().http_client.clone(),
                 data: ExecData{
                     language: language,
-                    files: vec![File{
-                        content: block.code,
-                        ..Default::default()
-                    }],
-                    stdin: match stdin {
-                        Some(stdin) => stdin,
-                        None => String::new(),
-                    },
+                    version: args.version,
+                    files: files,
+                    args: args.args,
+                    stdin: args.stdin,
                     ..Default::default()
                 },
                 ..Default::default()
