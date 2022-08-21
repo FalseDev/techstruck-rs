@@ -159,7 +159,7 @@ fn parse_args(arg:String)->ParsedArgs{
     loop{
         match raw_args.next(){
             Some(part) => {
-                match part{
+                match part.trim(){
                     "version"=>{
                         raw_args.next().map(|next|{
                             parsed.set_version(next.trim().to_string());
