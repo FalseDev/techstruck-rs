@@ -1,5 +1,6 @@
 mod common;
 mod groups;
+mod util;
 use common::{get_env, Context, Data, Error};
 
 use poise::serenity_prelude as serenity;

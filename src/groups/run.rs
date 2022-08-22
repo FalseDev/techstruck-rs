@@ -5,6 +5,8 @@ use reqwest::Client;
 use serde::{Serialize, Deserialize};
 use std::sync::Arc;
 use regex::Regex;
+
+#[derive(Debug)]
 enum ExecutionStatus{
     Running,
     // Success,
@@ -79,6 +81,7 @@ pub struct RawExecResponse {
     pub compile: Option<ExecResult>,
 }
 
+#[derive(Debug)]
 struct Executor{
     client:Arc<Client>,
     data:ExecData,
@@ -261,13 +264,21 @@ pub(crate) async fn run(
                     }
                 },
                 None=>{
-                    ctx.say("no output recieved").await?;
+                    ctx.send(|f| f
+                        .content("**🛑 Error while getting response from api**")
+                        .embed(|f| f
+                            .title("** **")
+                            .description(format!("```rs\n{:#?}\n```",executor))
+                        )
+                        .ephemeral(true)
+                    ).await?;
                 }
             }
         }
         None => {
             ctx.say("Please specify a language").await?;
         }
+        
     }
     return Ok(())
 }
