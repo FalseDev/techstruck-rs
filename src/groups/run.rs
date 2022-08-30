@@ -5,12 +5,13 @@ use reqwest::Client;
 use serde::{Serialize, Deserialize};
 use std::sync::Arc;
 use regex::Regex;
+use crate::util::ansi::{ansi, TextColors, BgColors, Style};
 
 #[derive(Debug)]
 enum ExecutionStatus{
     Running,
-    // Success,
-    // Failure, //will use these later when embed building
+    Success,
+    Failure, //will use these later when embed building
 }
 
 lazy_static!{
@@ -219,6 +220,14 @@ fn parse_args(arg:String)->ParsedArgs{
     parsed
 }
 
+fn check_len(out:&String)->bool{
+    if out.len() > 1120 || out.lines().count() > 20{
+        return false;
+    }else{
+        return true;
+    }
+}
+
 
 #[command(prefix_command)]
 pub(crate) async fn run(
@@ -256,10 +265,51 @@ pub(crate) async fn run(
                 Some(out)=>{
                     match out.run.output.trim(){
                         "" => {
-                            ctx.say("**no output**").await?;
+                            ctx.send(|f| f
+                                .embed(|e| e
+                                    .title(format!("**{}**",out.language))
+                                    .url("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+                                    .description(format!(
+                                        "```ansi\n{}no output\n```",
+                                        ansi(TextColors::Pink,BgColors::None,Style::Bold)
+
+                                    ))
+                                )
+                            ).await?;
                         },
                         _ => {
-                            ctx.say(format!("```{}\n{}```",out.language,out.run.output)).await?;
+                            match check_len(&out.run.output){
+                                true => {
+                                    let resp = ctx.send(|f| f
+                                        .embed(|e| e
+                                            .title(format!(
+                                                "**{}**",
+                                                out.language
+                                            ))
+                                            .url("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+                                            .description(format!("```{}\n{}\n```",out.language,out.run.output))
+                                        )
+                                        .components(|c| c
+                                            .create_action_row(|r| r
+                                                .create_button(|b| b
+                                                    .custom_id("run.status")
+                                                    .label(match out.run.code{
+                                                        Some(0)=>"code run",
+                                                        _=>"code errored"
+                                                    })
+                                                    .style(match out.run.code{
+                                                        Some(0)=>poise::serenity_prelude::ButtonStyle::Success,
+                                                        _=>poise::serenity_prelude::ButtonStyle::Danger
+                                                    })
+                                                )
+                                            ))
+                                    ).await?;
+                                    resp.message().await?.await_component_interactions().await?
+                                },
+                                false => {
+                                    ctx.say("**output too long**").await?;
+                                }
+                            }
                         }
                     }
                 },
@@ -269,6 +319,7 @@ pub(crate) async fn run(
                         .embed(|f| f
                             .title("** **")
                             .description(format!("```rs\n{:#?}\n```",executor))
+                            .url("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
                         )
                         .ephemeral(true)
                     ).await?;
@@ -276,7 +327,14 @@ pub(crate) async fn run(
             }
         }
         None => {
-            ctx.say("Please specify a language").await?;
+            ctx.send(|f| f
+                .embed(|e| e
+                    .description(format!(
+                        "```ansi\n{}please specify a language\n```",
+                        ansi(TextColors::Red,BgColors::None,Style::Bold)
+                    )
+                ))
+            ).await?;
         }
         
     }
