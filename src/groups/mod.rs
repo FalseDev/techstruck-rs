@@ -9,6 +9,7 @@ pub(crate) fn commands() -> Vec<poise::Command<Data, Error>> {
         packages::commands(),
         admin::commands(),
         vec![help::help(), rtfm::rtfm()],
+        crate::lua::command::commands(),
     ]
     .into_iter()
     .flatten()

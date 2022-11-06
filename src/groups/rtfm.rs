@@ -132,7 +132,7 @@ impl SphinxInventory {
     }
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub(crate) struct RtfmData {
     targets: HashMap<String, String>,
     url_overrides: HashMap<String, String>,

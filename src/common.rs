@@ -7,6 +7,7 @@ pub(crate) type Error = anyhow::Error;
 pub(crate) type Context<'a> = poise::Context<'a, Data, Error>;
 
 // Data which is stored and accessible in all command invocations
+#[derive(Debug)]
 pub(crate) struct Data {
     pub(crate) http_client: Arc<reqwest::Client>,
     pub(crate) rtfm_data: Arc<RtfmData>,

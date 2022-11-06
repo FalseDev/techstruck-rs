@@ -20,3 +20,13 @@ reqwest = { version = "0.11.11" }
 serde = { version = "1.0.143", features = ["derive"] }
 serde_json = { version = "1.0.83" }
 
+
+# thiserror = "1.0.32"
+mlua = {version = "*", features = ["luau", "serialize", "send", "async"]}
+# mlua = {version = "*", features = ["luau", "serialize", "async"]}
+# futures = "0.3.23"
+
+[profile.release]
+panic = "abort"
+debug = false
+strip = true
